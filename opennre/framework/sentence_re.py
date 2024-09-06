@@ -166,18 +166,14 @@ class SentenceRE(nn.Module):
         result = eval_loader.dataset.eval(pred_result)
         return result
 
-    def prediction(self, eval_loader):
+    def prediction(self, eval_loader, device):
         self.eval()
         pred_result = []
         with torch.no_grad():
             t = tqdm(eval_loader)
             for iter, data in enumerate(t):
-                if torch.cuda.is_available():
-                    for i in range(len(data)):
-                        try:
-                            data[i] = data[i].cuda()
-                        except:
-                            pass
+                for i in range(len(data)):
+                    data[i] = data[i].to(device)
                 label = data[0]
                 args = data[1:]
                 logits = self.parallel_model(*args)
