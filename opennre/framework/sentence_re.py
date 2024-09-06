@@ -166,6 +166,27 @@ class SentenceRE(nn.Module):
         result = eval_loader.dataset.eval(pred_result)
         return result
 
+    def prediction(self, eval_loader):
+        self.eval()
+        pred_result = []
+        with torch.no_grad():
+            t = tqdm(eval_loader)
+            for iter, data in enumerate(t):
+                if torch.cuda.is_available():
+                    for i in range(len(data)):
+                        try:
+                            data[i] = data[i].cuda()
+                        except:
+                            pass
+                label = data[0]
+                args = data[1:]
+                logits = self.parallel_model(*args)
+                score, pred = logits.max(-1) # (B)
+                # Save result
+                for i in range(pred.size(0)):
+                    pred_result.append(pred[i].item())
+        return pred_result
+
     def load_state_dict(self, state_dict):
         self.model.load_state_dict(state_dict)
 
